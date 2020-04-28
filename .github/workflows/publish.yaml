@@ -1,0 +1,16 @@
+name: Publish Emacs docker image
+on: [push]
+
+jobs:
+  build:
+    name: Build a docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: docker/build-push-action@v1
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: dolhana/docker-emacs/emacs
+          tag_with_ref: true
