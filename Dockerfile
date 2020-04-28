@@ -38,27 +38,25 @@ RUN apt-get update && \
         python \
         texinfo \
         xaw3dg-dev \
+        xz-utils \
         zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
 ENV EMACS_BRANCH="emacs-26.3"
 ENV EMACS_VERSION="26.3"
+ENV EMACS_INSTALL_PREFIX="/opt/emacs"
 
-COPY source /opt/emacs
+RUN mkdir -p /tmp/emacs-src && \
+    cd /tmp/emacs-src && \
+    curl -LO http://ftpmirror.gnu.org/emacs/${EMACS_BRANCH}.tar.xz && \
+    tar -x --xz -f ${EMACS_BRANCH}.tar.xz
 
-RUN cd /opt/emacs && \
+RUN cd /tmp/emacs-src/${EMACS_BRANCH} && \
     ./autogen.sh && \
-    ./configure --with-modules && \
+    ./configure --prefix=${EMACS_INSTALL_PREFIX} --with-modules && \
     make -j 8 && \
     make install
 
-RUN mkdir -p /root/.emacs.d/elpa/gnupg && \
-    chmod 700 /root/.emacs.d/elpa/gnupg && \
-    gpg --homedir /root/.emacs.d/elpa/gnupg \
-        --keyserver hkp://ipv4.pool.sks-keyservers.net \
-        --recv-keys 066DAFCB81E42C40
-
-RUN curl -fsSL https://raw.githubusercontent.com/cask/cask/master/go | python
-ENV PATH="/root/.cask/bin:$PATH"
+ENV PATH="${EMACS_INSTALL_PREFIX}/bin:$PATH"
 
 CMD ["emacs"]
